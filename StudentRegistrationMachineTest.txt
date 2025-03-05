@@ -1,0 +1,67 @@
+CREATE DATABASE StudentRegistrationDB;
+
+--drop database StudentRegistrationDB
+
+USE StudentRegistrationDB;
+
+-- Student details
+CREATE TABLE Students (
+    StudentId INT IDENTITY PRIMARY KEY,  
+    FirstName VARCHAR(25) NOT NULL,
+    LastName VARCHAR(25),
+    DOB DATE NOT NULL,
+    Gender VARCHAR(10) NOT NULL,
+    Email VARCHAR(20) UNIQUE NOT NULL,
+    PhoneNumber VARCHAR(10) UNIQUE NOT NULL
+);
+ select * from Students
+-- Login credentials 
+CREATE TABLE Logins (LoginId INT IDENTITY(1,1) PRIMARY KEY,Username VARCHAR(20) UNIQUE NOT NULL, SPassword VARCHAR(20) NOT NULL
+);
+
+INSERT INTO Logins (Username,SPassword) VALUES 
+('Admin','A123');
+select * from Logins
+
+-- Qualification details
+CREATE TABLE Qualifications (
+    QualificationId INT IDENTITY(1,1) PRIMARY KEY,
+    StudentId INT FOREIGN KEY REFERENCES Students(StudentId) ON DELETE CASCADE,
+    CourseName VARCHAR(20) NOT NULL,
+    University VARCHAR(30) NOT NULL,
+    YearOfPassing INT NOT NULL,
+    Percentage DECIMAL(5,2) NOT NULL
+);
+
+------
+CREATE PROCEDURE sp_GetAllStudentRecords
+AS
+BEGIN
+SELECT S.StudentId, S.FirstName, S.LastName, S.DOB, S.Gender, S.Email, S.PhoneNumber, Q.QualificationId, Q.CourseName, Q.University, Q.YearOfPassing, Q.Percentage
+FROM Students S LEFT JOIN Qualifications Q ON S.StudentId = Q.StudentId
+ORDER BY S.StudentId;
+END;
+EXEC sp_GetAllStudentRecords;
+
+CREATE PROCEDURE sp_RegisterStudent
+@FirstName VARCHAR(25),
+@LastName VARCHAR(25),
+@DOB DATE,
+@Gender VARCHAR(10),
+@Email VARCHAR(20),
+@PhoneNumber VARCHAR(10),
+@CourseName VARCHAR(20),
+@University VARCHAR(30),
+@YearOfPassing INT,
+@Percentage DECIMAL(5,2)
+AS
+BEGIN
+SET NOCOUNT ON;
+DECLARE @NewStudentId INT;
+INSERT INTO Students (StudentId, FirstName, LastName, DOB, Gender, Email, PhoneNumber)
+VALUES ((SELECT COALESCE(MAX(StudentId), 0) + 1 FROM Students), @FirstName, @LastName, @DOB, @Gender, @Email, @PhoneNumber);
+SELECT @NewStudentId = MAX(StudentId) FROM Students;
+INSERT INTO Qualifications (StudentId, CourseName, University, YearOfPassing, Percentage)
+VALUES (@NewStudentId, @CourseName, @University, @YearOfPassing, @Percentage);
+END;
+
