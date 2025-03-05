@@ -8,7 +8,7 @@ namespace Student_Registration.Controllers
     public class LoginController : Controller
     {
         private readonly ILoginRepository _loginRepository;
-        public LoginController(ILoginRepository loginRepository) //ctor - shortcut
+        public LoginController(ILoginRepository loginRepository)
         {
             _loginRepository = loginRepository;
         }
